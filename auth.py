@@ -1,17 +1,16 @@
 import firebase_admin
-from firebase_admin import credentials, firestore
+from firebase_admin import credentials, firestore, auth
 import streamlit as st
+import json
 
-# Convert AttrDict to a dictionary
-firebase_config = dict(st.secrets["firebase"])
+# Convert Streamlit secrets to a dictionary & load it as JSON
+firebase_config = json.loads(json.dumps(st.secrets["firebase"]))
 
 if not firebase_admin._apps:
     cred = credentials.Certificate(firebase_config)
     firebase_admin.initialize_app(cred)
 
 db = firestore.client()
-
-
 
 # Signup Function
 def signup_user(email, password):

@@ -4,7 +4,8 @@ import streamlit as st
 import json
 
 # Ensure the Firebase config is a proper dictionary
-firebase_config = json.loads(st.secrets["firebase"])  # Convert from AttrDict to dict
+firebase_config = dict(st.secrets["firebase"])  
+
 
 # Validate that 'type' is 'service_account'
 if "type" not in firebase_config or firebase_config["type"] != "service_account":

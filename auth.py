@@ -4,7 +4,7 @@ import streamlit as st
 import json
 
 # Load Firebase credentials from Streamlit secrets
-firebase_json = st.secrets["firebase"]["json_credentials"]
+firebase_config = dict(st.secrets["firebase"])
 
 # Convert JSON string to dictionary
 firebase_config = json.loads(firebase_json)

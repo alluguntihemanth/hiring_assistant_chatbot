@@ -1,9 +1,14 @@
 import firebase_admin
 from firebase_admin import credentials, firestore
 import streamlit as st
+import json
 
-# Load Firebase credentials directly from Streamlit secrets (no need for json.loads)
-firebase_config = dict(st.secrets["firebase"])  
+# Ensure the Firebase config is a proper dictionary
+firebase_config = json.loads(st.secrets["firebase"])  # Convert from AttrDict to dict
+
+# Validate that 'type' is 'service_account'
+if "type" not in firebase_config or firebase_config["type"] != "service_account":
+    raise ValueError("Invalid Firebase credentials: Missing or incorrect 'type' field.")
 
 # Initialize Firebase Admin SDK
 if not firebase_admin._apps:

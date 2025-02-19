@@ -3,9 +3,8 @@ from firebase_admin import auth, credentials, firestore
 import streamlit as st
 import json
 
-# Initialize Firebase
-with open("firebase_config.json") as f:
-    firebase_config = json.load(f)
+# Load Firebase credentials from Streamlit secrets
+firebase_config = st.secrets["firebase"]
 
 if not firebase_admin._apps:
     cred = credentials.Certificate(firebase_config)

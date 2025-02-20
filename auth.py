@@ -1,11 +1,9 @@
 import firebase_admin
-from firebase_admin import credentials, firestore
+from firebase_admin import credentials, firestore, auth  # <-- Add auth import
 import streamlit as st
-import json
 
 # Ensure the Firebase config is a proper dictionary
 firebase_config = dict(st.secrets["firebase"])  
-
 
 # Validate that 'type' is 'service_account'
 if "type" not in firebase_config or firebase_config["type"] != "service_account":
@@ -17,7 +15,6 @@ if not firebase_admin._apps:
     firebase_admin.initialize_app(cred)
 
 db = firestore.client()
-
 
 # Signup Function
 def signup_user(email, password):
@@ -55,8 +52,9 @@ def delete_user_data(uid):
         db.collection("users").document(uid).delete()
 
         # Delete user from Firebase Authentication
-        auth.delete_user(uid)
+        auth.delete_user(uid)  # <-- Ensure 'auth' is recognized
 
         return True
     except Exception as e:
         return str(e)
+

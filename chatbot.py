@@ -36,6 +36,7 @@ if "logged_in" not in st.session_state:
     st.session_state.user_id = None
     st.session_state.tech_questions = []
     st.session_state.current_question_index = 0
+    st.session_state.scores = []  # Initialize scores list    
 
 # Login or Signup
 if not st.session_state.logged_in:

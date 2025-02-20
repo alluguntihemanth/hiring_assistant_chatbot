@@ -53,7 +53,7 @@ if not st.session_state.logged_in:
         location = st.text_input("Current Location")
         tech_stack = st.text_area("Tech Stack (e.g., Python, React, AWS)")
 
-    # GDPR Policy (Moved here, just before signup/login)
+    # GDPR Policy
     st.subheader("🔐 Privacy Policy")
     st.markdown(
         "By using this application, you agree to our **[Privacy Policy](https://docs.google.com/document/d/1_qotecui4tWRO5VqqaMK0af5YKofpzs0shQpq9dsFjg/edit?usp=sharing)**. "
@@ -61,22 +61,23 @@ if not st.session_state.logged_in:
     )
     agree_gdpr = st.checkbox("I agree to the Privacy Policy", key="gdpr_checkbox")
 
-    if st.button("Signup"):
-        if not agree_gdpr:
-           st.warning("You must accept the Privacy Policy to continue.")
-        else:
-            user_id = signup_user(email, password)
-            if user_id:
-                save_user(user_id, email, name, phone, experience, position, location, tech_stack)
-                st.session_state.logged_in = True
-                st.session_state.user_id = user_id
-                st.session_state.tech_questions = get_tech_questions(tech_stack)[:5]
-                st.success("Signup successful!")
-                st.rerun()
+    if option == "Signup":
+        if st.button("Signup"):
+            if not agree_gdpr:
+                st.warning("You must accept the Privacy Policy to continue.")
             else:
-                st.error("Error during signup!")
-    
-    else:
+                user_id = signup_user(email, password)
+                if user_id:
+                    save_user(user_id, email, name, phone, experience, position, location, tech_stack)
+                    st.session_state.logged_in = True
+                    st.session_state.user_id = user_id
+                    st.session_state.tech_questions = get_tech_questions(tech_stack)[:5]
+                    st.success("Signup successful!")
+                    st.rerun()
+                else:
+                    st.error("Error during signup!")
+
+    elif option == "Login":
         if st.button("Login") and agree_gdpr:
             user_id = login_user(email, password)
             if user_id:
@@ -90,6 +91,7 @@ if not st.session_state.logged_in:
                 st.error("Invalid credentials!")
         elif not agree_gdpr:
             st.warning("You must accept the Privacy Policy to continue.")
+
 
 # Logged-in State
 if st.session_state.logged_in:

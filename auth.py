@@ -51,17 +51,18 @@ def get_user_data(uid):
 def delete_user_data(uid):
     try:
         # Delete user's chat history
-        chats_ref = db.collection("users").document(uid).collection("chats")
-        for chat in chats_ref.stream():
+        chats_ref = db.collection("users").document(uid).collection("chats").stream()
+        for chat in chats_ref:
             chat.reference.delete()
 
-        # Delete user document
+        # Delete user document from Firestore
         db.collection("users").document(uid).delete()
 
         # Delete user from Firebase Authentication
-        auth.delete_user(uid)  # <-- Ensure 'auth' is recognized
+        auth.delete_user(uid)
 
         return True
     except Exception as e:
         return str(e)
+
 

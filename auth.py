@@ -33,7 +33,7 @@ def login_user(email, password):
 
 # Store User Data
 def save_user(uid, email, name, tech_stack):
-    user_data = {"email": email, "name": name, "tech_stack": tech_stack}
+    user_data = {"email": email, "name": name, "tech_stack": tech_stack, "phone": phone, "experience": experience, "position": position, "location": location}
     db.collection("users").document(uid).set(user_data)
 
 # Retrieve User Data

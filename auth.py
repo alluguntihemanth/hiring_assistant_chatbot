@@ -19,15 +19,18 @@ db = firestore.client()
 # Signup Function
 def signup_user(email, password):
     try:
-        # Check if user already exists
-        existing_users = db.collection("users").where("email", "==", email).stream()
-        for user in existing_users:
-            return f"User already exists with ID: {user.id}"
+        # Check if user already exists in Firebase Authentication
+        try:
+            user = auth.get_user_by_email(email)
+            # If the user exists, delete them
+            auth.delete_user(user.uid)
+        except auth.UserNotFoundError:
+            pass  # If user does not exist, continue
 
-        # Create user in Firebase Auth
+        # Create new user in Firebase Authentication
         user = auth.create_user(email=email, password=password)
-
-        return user.uid
+        
+        return user.uid  # Return the new user ID
     except Exception as e:
         return str(e)
 

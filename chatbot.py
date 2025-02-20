@@ -30,26 +30,12 @@ def evaluate_response(candidate_answer):
 st.title("🧑‍💻 TalentScout Hiring Assistant")
 st.write("Helping recruiters assess tech candidates quickly!")
 
-
 # Session State Initialization
 if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
     st.session_state.user_id = None
     st.session_state.tech_questions = []
     st.session_state.current_question_index = 0
-
-    # GDPR Policy
-    if "logged_in" not in st.session_state or not st.session_state.logged_in:
-        st.subheader("🔐 Privacy Policy")
-        st.markdown(
-            "By using this application, you agree to our **[Privacy Policy](https://docs.google.com/document/d/1_qotecui4tWRO5VqqaMK0af5YKofpzs0shQpq9dsFjg/edit?usp=sharing)**. "
-            "You can delete your data at any time."
-        )
-    # Accept GDPR Policy
-    agree_gdpr = st.checkbox("I agree to the Privacy Policy", key="gdpr_checkbox")
-
-    elif not agree_gdpr:
-        st.warning("You must accept the Privacy Policy to continue.")
 
 # Login or Signup
 if not st.session_state.logged_in:
@@ -65,7 +51,16 @@ if not st.session_state.logged_in:
         position = st.selectbox("Desired Position", ["Full Stack Developer", "Frontend Developer", "Backend Developer", "ML Engineer", "Gen AI Engineer"])
         location = st.text_input("Current Location")
         tech_stack = st.text_area("Tech Stack (e.g., Python, React, AWS)")
-        
+
+    # GDPR Policy (Moved here, just before signup/login)
+    st.subheader("🔐 Privacy Policy")
+    st.markdown(
+        "By using this application, you agree to our **[Privacy Policy](https://docs.google.com/document/d/1_qotecui4tWRO5VqqaMK0af5YKofpzs0shQpq9dsFjg/edit?usp=sharing)**. "
+        "You can delete your data at any time."
+    )
+    agree_gdpr = st.checkbox("I agree to the Privacy Policy", key="gdpr_checkbox")
+
+    if option == "Signup":
         if st.button("Signup") and agree_gdpr:
             user_id = signup_user(email, password)
             if user_id:
@@ -91,7 +86,6 @@ if not st.session_state.logged_in:
                 st.error("Invalid credentials!")
         elif not agree_gdpr:
             st.warning("You must accept the Privacy Policy to continue.")
-            
 
 # Logged-in State
 if st.session_state.logged_in:
@@ -135,8 +129,7 @@ if st.session_state.logged_in:
         st.session_state.user_id = None
         st.rerun()
     
-
-        # Logout Button
+    # Logout Button
     if st.button("Logout"):
         st.session_state.logged_in = False
         st.session_state.user_id = None

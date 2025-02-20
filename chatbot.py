@@ -139,19 +139,24 @@ if st.session_state.logged_in:
 
             with col3:
                 if index == total_questions - 1 and st.button("Submit"):
-                    score = evaluate_response(candidate_answer)  # Evaluate response with Gemini
-                    st.session_state.scores.append(score)
+                   score = evaluate_response(candidate_answer)  # Evaluate response with Gemini
+                   st.session_state.scores.append(score)
 
-                    save_chat_history(st.session_state.user_id, current_question, candidate_answer)
-                    st.session_state.current_question_index += 1
-                    st.session_state[f"answer_{st.session_state.current_question_index}"] = ""
-                    st.rerun()
+                   save_chat_history(st.session_state.user_id, current_question, candidate_answer)
 
-               
-                    average_score = sum(st.session_state.scores) / len(st.session_state.scores)
-                    st.write(f"✅ Assessment Complete! Your final score: **{average_score:.2f}%**")
-                    save_user_score(st.session_state.user_id, average_score)
+                   # Calculate final score
+                   average_score = sum(st.session_state.scores) / len(st.session_state.scores)
+                   save_user_score(st.session_state.user_id, average_score)
 
+                   # Move past the last question to indicate assessment is complete
+                   st.session_state.current_question_index = total_questions
+
+                   # Display final assessment message
+                   st.write(f"✅ Assessment Complete! Your final score: **{average_score:.2f}%**")
+
+                   # Avoid immediate re-run to prevent clearing the final message
+                   time.sleep(2)
+                   st.rerun()
                     
         else:
             st.write("No questions available.")

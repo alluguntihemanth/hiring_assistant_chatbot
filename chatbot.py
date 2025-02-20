@@ -1,8 +1,28 @@
 import streamlit as st
+import google.generativeai as genai  # Gemini API
 from auth import signup_user, login_user, save_user, get_user_data, delete_user_data
-import gemini_api
-from database import save_chat_history, get_chat_history, delete_all_user_data
+import gemini_api import GEMINI_API_KEY
+from database import save_chat_history, get_chat_history, delete_all_user_data, save_user_score
 from prompts import get_tech_questions
+import time
+
+# Initialize Gemini AI
+genai.configure(api_key=GEMINI_API_KEY)
+
+import re
+
+def evaluate_response(candidate_answer):
+    """Evaluates the candidate's answer using Gemini AI and returns a numeric score."""
+    model = genai.GenerativeModel("gemini-pro")  # Use appropriate model
+    prompt = f"Evaluate the following technical answer and give a score out of 100:\n\n{candidate_answer}"
+    response = model.generate_content(prompt)
+
+    # Extract numerical score using regex
+    match = re.search(r"(\d+)/100", response.text)
+    if match:
+        return float(match.group(1))  # Extract and return the numeric score
+    else:
+        return 0.0  # Default score if extraction fails
 
 # Page Title
 st.title("🧑‍💻 TalentScout Hiring Assistant")
@@ -35,7 +55,12 @@ if not st.session_state.logged_in:
 
     if option == "Signup":
         name = st.text_input("Full Name")
+        phone = st.text_input("Phone Number")
+        experience = st.number_input("Years of Experience", min_value=0, max_value=50, step=1)
+        position = st.selectbox("Desired Position", ["Full Stack Developer", "Frontend Developer", "Backend Developer", "ML Engineer", "Gen AI Engineer"])
+        location = st.text_input("Current Location")
         tech_stack = st.text_area("Tech Stack (e.g., Python, React, AWS)")
+        
         if st.button("Signup") and agree_gdpr:
             user_id = signup_user(email, password)
             if user_id:
@@ -74,34 +99,40 @@ if st.session_state.logged_in:
         current_question = st.session_state.tech_questions[st.session_state.current_question_index]
         st.write(f"📌 **{current_question}**")
 
-        # Auto-expanding text box (no form border, submits on Enter)
-        candidate_answer = st.text_area(
-            "Your Answer:",
-            key=f"answer_{st.session_state.current_question_index}",
-            height=None,  # Expands dynamically
-            max_chars=500  # Prevents excessive growth
-        )
+        candidate_answer = st.text_area("Your Answer:", key=f"answer_{st.session_state.current_question_index}")
 
-        # Submit Button
-        if st.button("Submit", key=f"submit_{st.session_state.current_question_index}"):
+        if st.button("Submit"):
+            score = evaluate_response(candidate_answer)  # Evaluate response with Gemini
+            st.session_state.scores.append(score)
+
             save_chat_history(st.session_state.user_id, current_question, candidate_answer)
             st.session_state.current_question_index += 1
             st.session_state[f"answer_{st.session_state.current_question_index}"] = ""
             st.rerun()
     else:
-        st.write("✅ You've completed the technical assessment. Thank you!")
+        average_score = sum(st.session_state.scores) / len(st.session_state.scores)
+        st.write(f"✅ Assessment Complete! Your final score: **{average_score:.2f}%**")
+        save_user_score(st.session_state.user_id, average_score)
 
-    # User Data Deletion
+    # User Data Deletion (Button deactivated after first click)
+    if "delete_clicked" not in st.session_state:
+        st.session_state.delete_clicked = False
+
     st.subheader("⚠️ Delete Your Data")
     st.write("If you wish to remove all your stored data, click below.")
-    if st.button("Delete My Data"):
+    delete_button = st.button("Delete My Data", disabled=st.session_state.delete_clicked)
+
+    if delete_button:
         delete_all_user_data(st.session_state.user_id)
+        st.session_state.delete_clicked = True
         st.success("Your data has been deleted successfully.")
+        time.sleep(2)
         st.session_state.logged_in = False
         st.session_state.user_id = None
         st.rerun()
+    
 
-    # Logout Button
+        # Logout Button
     if st.button("Logout"):
         st.session_state.logged_in = False
         st.session_state.user_id = None

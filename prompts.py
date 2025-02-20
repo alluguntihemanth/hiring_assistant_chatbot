@@ -7,10 +7,11 @@ def get_tech_questions(tech_stack):
         "Ensure they cover different aspects such as programming, algorithms, debugging, best practices, "
         "and real-world applications. Do NOT provide answers, only questions."
     )
+    
     questions = generate_questions(prompt)
-    
-    # Ensure questions list is valid and correctly formatted
-    if not questions or len(questions) < 5:
-        return ["Error: Failed to generate relevant questions. Please retry."]
-    
+
+    if not isinstance(questions, list) or len(questions) < 5:
+        return ["Error: Unable to generate enough questions. Try again later."]
+
     return questions
+

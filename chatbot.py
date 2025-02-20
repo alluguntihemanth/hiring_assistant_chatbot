@@ -62,10 +62,7 @@ if not st.session_state.logged_in:
     agree_gdpr = st.checkbox("I agree to the Privacy Policy", key="gdpr_checkbox")
 
     if option == "Signup":
-        if st.button("Signup"):
-            if not agree_gdpr:
-                st.warning("You must accept the Privacy Policy to continue.")
-            else:
+        if st.button("Signup") and agree_gdpr:
                 user_id = signup_user(email, password)
                 if user_id:
                     save_user(user_id, email, name, phone, experience, position, location, tech_stack)
@@ -76,6 +73,8 @@ if not st.session_state.logged_in:
                     st.rerun()
                 else:
                     st.error("Error during signup!")
+        elif not agree_gdpr:
+            st.warning("You must accept the Privacy Policy to continue.")
 
     elif option == "Login":
         if st.button("Login") and agree_gdpr:

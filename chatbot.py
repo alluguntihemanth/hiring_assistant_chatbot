@@ -13,16 +13,26 @@ genai.configure(api_key=GEMINI_API_KEY)
 
 import re
 
+import re
+
 def evaluate_response(candidate_answer):
     """Evaluates the candidate's answer using Gemini AI and returns a numeric score."""
-    model = genai.GenerativeModel("gemini-pro")  # Use appropriate model
-    prompt = f"Evaluate the following technical answer and give a score out of 100:\n\n{candidate_answer}"
+    model = genai.GenerativeModel("gemini-pro")
+    
+    # Improved prompt for better response evaluation
+    prompt = (
+        "Evaluate the following technical answer on accuracy, completeness, and relevance to the topic. "
+        "Provide a numeric score between 0 and 100, with 100 being perfect. Format: Score: [number]/100.\n\n"
+        f"Answer: {candidate_answer}"
+    )
+    
     response = model.generate_content(prompt)
 
     # Extract numerical score using regex
-    match = re.search(r"(\d+)/100", response.text)
+    match = re.search(r"Score:\s*(\d+)", response.text)
+    
     if match:
-        return float(match.group(1))  # Extract and return the numeric score
+        return min(max(float(match.group(1)), 0), 100)  # Ensure score is within 0-100
     else:
         return 0.0  # Default score if extraction fails
 

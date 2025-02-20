@@ -38,6 +38,19 @@ if "logged_in" not in st.session_state:
     st.session_state.tech_questions = []
     st.session_state.current_question_index = 0
 
+    # GDPR Policy
+    if "logged_in" not in st.session_state or not st.session_state.logged_in:
+        st.subheader("🔐 Privacy Policy")
+        st.markdown(
+            "By using this application, you agree to our **[Privacy Policy](https://docs.google.com/document/d/1_qotecui4tWRO5VqqaMK0af5YKofpzs0shQpq9dsFjg/edit?usp=sharing)**. "
+            "You can delete your data at any time."
+        )
+    # Accept GDPR Policy
+    agree_gdpr = st.checkbox("I agree to the Privacy Policy", key="gdpr_checkbox")
+
+        elif not agree_gdpr:
+            st.warning("You must accept the Privacy Policy to continue.")
+
 # Login or Signup
 if not st.session_state.logged_in:
     option = st.selectbox("Login or Signup", ["Login", "Signup"])
@@ -78,19 +91,7 @@ if not st.session_state.logged_in:
                 st.error("Invalid credentials!")
         elif not agree_gdpr:
             st.warning("You must accept the Privacy Policy to continue.")
-
-    # GDPR Policy
-    if "logged_in" not in st.session_state or not st.session_state.logged_in:
-        st.subheader("🔐 Privacy Policy")
-        st.markdown(
-            "By using this application, you agree to our **[Privacy Policy](https://docs.google.com/document/d/1_qotecui4tWRO5VqqaMK0af5YKofpzs0shQpq9dsFjg/edit?usp=sharing)**. "
-            "You can delete your data at any time."
-        )
-    # Accept GDPR Policy
-    agree_gdpr = st.checkbox("I agree to the Privacy Policy", key="gdpr_checkbox")
-
-        elif not agree_gdpr:
-            st.warning("You must accept the Privacy Policy to continue.")
+            
 
 # Logged-in State
 if st.session_state.logged_in:

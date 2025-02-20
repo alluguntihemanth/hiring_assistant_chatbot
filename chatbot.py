@@ -48,8 +48,8 @@ if "logged_in" not in st.session_state:
     # Accept GDPR Policy
     agree_gdpr = st.checkbox("I agree to the Privacy Policy", key="gdpr_checkbox")
 
-        elif not agree_gdpr:
-            st.warning("You must accept the Privacy Policy to continue.")
+    elif not agree_gdpr:
+        st.warning("You must accept the Privacy Policy to continue.")
 
 # Login or Signup
 if not st.session_state.logged_in:

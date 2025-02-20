@@ -118,6 +118,10 @@ if st.session_state.logged_in:
         if st.button("Start Interview"):
             st.session_state.interview_started = True
             st.rerun()
+    
+    if "answers" not in st.session_state:
+        st.session_state.answers = {}
+
     else:
         # Ask Tech Questions Sequentially
         total_questions = len(st.session_state.tech_questions)

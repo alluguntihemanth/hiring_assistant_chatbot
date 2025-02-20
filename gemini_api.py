@@ -4,7 +4,7 @@ import os
 from dotenv import load_dotenv
 
 # Load environment variables from .env file
-load_dotenv()
+#load_dotenv()
 
 # Configure API Key
 GEMINI_API_KEY = st.secrets["gemini"]["api_key"]

@@ -21,3 +21,6 @@ def delete_all_user_data(user_id):
 
     # Delete user data
     user_ref.delete()
+
+def save_user_score(user_id, score):
+    db.collection("users").document(user_id).update({"final_score": score})

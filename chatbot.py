@@ -64,7 +64,7 @@ if not st.session_state.logged_in:
         if st.button("Signup") and agree_gdpr:
             user_id = signup_user(email, password)
             if user_id:
-                save_user(user_id, email, name, tech_stack, phone, experience, position, location)
+                save_user(user_id, email, name, phone, experience, position, location, tech_stack)
                 st.session_state.logged_in = True
                 st.session_state.user_id = user_id
                 st.session_state.tech_questions = get_tech_questions(tech_stack)[:5]

@@ -147,15 +147,12 @@ if st.session_state.logged_in:
                     st.session_state[f"answer_{st.session_state.current_question_index}"] = ""
                     st.rerun()
 
-                else:
-                    # After rerunning, show the final score when all questions are answered
-                        average_score = sum(st.session_state.scores) / len(st.session_state.scores)
-                        st.write(f"✅ Assessment Complete! Your final score: **{average_score:.2f}%**")
-                        save_user_score(st.session_state.user_id, average_score)
-
                     
         else:
-            st.write("No questions available.")
+            average_score = sum(st.session_state.scores) / len(st.session_state.scores)
+            st.write(f"✅ Assessment Complete! Your final score: **{average_score:.2f}%**")
+            save_user_score(st.session_state.user_id, average_score)
+
 
     # User Data Deletion
     if "delete_clicked" not in st.session_state:

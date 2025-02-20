@@ -44,7 +44,8 @@ if "logged_in" not in st.session_state:
     st.session_state.tech_questions = []
     st.session_state.current_question_index = 0
     st.session_state.scores = []  # Initialize scores list    
-
+    st.session_state.answers = {}  # Fix for AttributeError
+    
 # Login or Signup
 if not st.session_state.logged_in:
     option = st.selectbox("Login or Signup", ["Login", "Signup"])

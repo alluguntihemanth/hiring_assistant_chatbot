@@ -64,8 +64,6 @@ if not st.session_state.logged_in:
                 st.rerun()
             else:
                 st.error("Error during signup!")
-        elif not agree_gdpr:
-            st.warning("You must accept the Privacy Policy to continue.")
     else:
         if st.button("Login") and agree_gdpr:
             user_id = login_user(email, password)
@@ -90,6 +88,9 @@ if not st.session_state.logged_in:
         )
     # Accept GDPR Policy
     agree_gdpr = st.checkbox("I agree to the Privacy Policy", key="gdpr_checkbox")
+
+        elif not agree_gdpr:
+            st.warning("You must accept the Privacy Policy to continue.")
 
 # Logged-in State
 if st.session_state.logged_in:

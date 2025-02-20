@@ -11,19 +11,17 @@ import re
 GEMINI_API_KEY = st.secrets["gemini"]["api_key"]
 genai.configure(api_key=GEMINI_API_KEY)
 
+model = genai.GenerativeModel("gemini-pro")  # Move this to the top (global scope)
+
 def evaluate_response(candidate_answer):
     """Evaluates the candidate's answer using Gemini AI and returns a numeric score."""
-    model = genai.GenerativeModel("gemini-pro")
-    
     prompt = (
         "Evaluate the following technical answer on accuracy, completeness, and relevance to the topic. "
         "Provide a numeric score between 0 and 100, with 100 being perfect. Format: Score: [number]/100.\n\n"
         f"Answer: {candidate_answer}"
     )
-    
     response = model.generate_content(prompt)
     match = re.search(r"Score:\s*(\d+)", response.text)
-    
     return min(max(float(match.group(1)), 0), 100) if match else 0.0
 
 # Page Title
@@ -34,10 +32,6 @@ st.write("Helping recruiters assess tech candidates quickly!")
 if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
     st.session_state.user_id = None
-    st.session_state.tech_questions = []
-    st.session_state.current_question_index = 0
-    st.session_state.answers = {}  # Store answers persistently
-    st.session_state.scores = [] 
 
 # Login or Signup
 if not st.session_state.logged_in:
@@ -62,69 +56,50 @@ if not st.session_state.logged_in:
     )
     agree_gdpr = st.checkbox("I agree to the Privacy Policy", key="gdpr_checkbox")
 
-    if option == "Signup":
-        if st.button("Signup") and agree_gdpr:
-            user_id = signup_user(email, password)
-            if user_id:
-                save_user(user_id, email, name, phone, experience, position, location, tech_stack)
-                st.session_state.logged_in = True
-                st.session_state.user_id = user_id
-                st.session_state.tech_questions = get_tech_questions(tech_stack)[:5]
-                st.success("Signup successful!")
-                st.rerun()
-            else:
-                st.error("Error during signup!")
-        elif not agree_gdpr:
-            st.warning("You must accept the Privacy Policy to continue.")
-
-    elif option == "Login":
-        if st.button("Login") and agree_gdpr:
-            user_id = login_user(email, password)
-            if user_id:
-                st.session_state.logged_in = True
-                st.session_state.user_id = user_id
-                user_data = get_user_data(user_id)
-                st.session_state.tech_questions = get_tech_questions(user_data["tech_stack"])[:5]
-                st.success("Login successful!")
-                st.rerun()
-            else:
-                st.error("Invalid credentials!")
-        elif not agree_gdpr:
-            st.warning("You must accept the Privacy Policy to continue.")
+    if option == "Signup" and st.button("Signup") and agree_gdpr:
+        user_id = signup_user(email, password)
+        if user_id:
+            save_user(user_id, email, name, phone, experience, position, location, tech_stack)
+            st.session_state.logged_in = True
+            st.session_state.user_id = user_id
+            st.success("Signup successful!")
+            st.rerun()
+        else:
+            st.error("Error during signup!")
+    
+    elif option == "Login" and st.button("Login") and agree_gdpr:
+        user_id = login_user(email, password)
+        if user_id:
+            st.session_state.logged_in = True
+            st.session_state.user_id = user_id
+            st.success("Login successful!")
+            st.rerun()
+        else:
+            st.error("Invalid credentials!")
 
 # Logged-in State
 if st.session_state.logged_in:
     user_data = get_user_data(st.session_state.user_id)
     st.write(f"Welcome, **{user_data['name']}**! Your Tech Stack: {user_data['tech_stack']}")
-
-    # Start Interview Section
+    tech_questions = get_tech_questions(user_data["tech_stack"])[:5]
+    
+    index = st.session_state.get("current_question_index", 0)
+    
     if "interview_started" not in st.session_state:
-        st.session_state.interview_started = False
-
-    if not st.session_state.interview_started:
         if st.button("Start Interview"):
             st.session_state.interview_started = True
+            st.session_state.current_question_index = 0
+            st.session_state.answers = {}
+            st.session_state.scores = []
             st.rerun()
     else:
-        # Ask Tech Questions Sequentially
-        total_questions = len(st.session_state.tech_questions)
-        index = st.session_state.current_question_index
-
-        if index < total_questions:
-            current_question = st.session_state.tech_questions[index]
+        if index < len(tech_questions):
+            current_question = tech_questions[index]
             st.write(f"📌 **{current_question}**")
 
-            # Retrieve previous answer if it exists
-            candidate_answer = st.text_area(
-                "Your Answer:", 
-                value=st.session_state.answers.get(index, ""), 
-                key=f"answer_{index}"
-            )
-
-            # Store the answer persistently
+            candidate_answer = st.text_area("Your Answer:", value=st.session_state.answers.get(index, ""))
             st.session_state.answers[index] = candidate_answer
 
-            # Navigation Buttons
             col1, col2, col3 = st.columns([1, 1, 1])
 
             with col1:
@@ -133,48 +108,34 @@ if st.session_state.logged_in:
                     st.rerun()
 
             with col2:
-                if index < total_questions - 1 and st.button("Next"):
+                if index < len(tech_questions) - 1 and st.button("Next"):
                     st.session_state.current_question_index += 1
                     st.rerun()
 
             with col3:
-                if index == total_questions - 1 and st.button("Submit"):
-                    score = evaluate_response(candidate_answer)  # Evaluate response with Gemini
-                    st.session_state.scores.append(score)
-
-                    save_chat_history(st.session_state.user_id, current_question, candidate_answer)
-                    st.session_state.current_question_index += 1
-                    st.session_state[f"answer_{st.session_state.current_question_index}"] = ""
-                    st.rerun()
-
-                    
+                if index == len(tech_questions) - 1 and st.button("Submit"):
+                    if candidate_answer.strip():
+                        score = evaluate_response(candidate_answer)
+                        st.session_state.scores.append(score)
+                        save_chat_history(st.session_state.user_id, current_question, candidate_answer)
+                        st.session_state.current_question_index += 1
+                        st.rerun()
+                    else:
+                        st.warning("Please enter an answer before submitting.")
         else:
-            average_score = sum(st.session_state.scores) / len(st.session_state.scores)
-            st.write(f"✅ Assessment Complete! Your final score: **{average_score:.2f}%**")
-            save_user_score(st.session_state.user_id, average_score)
-
+            avg_score = sum(st.session_state.scores) / len(st.session_state.scores)
+            st.write(f"✅ Assessment Complete! Your final score: **{avg_score:.2f}%**")
+            save_user_score(st.session_state.user_id, avg_score)
 
     # User Data Deletion
-    if "delete_clicked" not in st.session_state:
-        st.session_state.delete_clicked = False
-
-    st.subheader("⚠️ Delete Your Data")
-    st.write("If you wish to remove all your stored data, click below.")
-    delete_button = st.button("Delete My Data", disabled=st.session_state.delete_clicked)
-
-    if delete_button:
+    if st.button("Delete My Data"):
         delete_all_user_data(st.session_state.user_id)
-        st.session_state.delete_clicked = True
         st.success("Your data has been deleted successfully.")
         time.sleep(2)
-        st.session_state.logged_in = False
-        st.session_state.user_id = None
+        st.session_state.clear()
         st.rerun()
     
     # Logout Button
     if st.button("Logout"):
-        st.session_state.logged_in = False
-        st.session_state.user_id = None
-        st.session_state.tech_questions = []
-        st.session_state.current_question_index = 0
+        st.session_state.clear()
         st.rerun()

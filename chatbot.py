@@ -103,6 +103,11 @@ if not st.session_state.logged_in:
 if st.session_state.logged_in:
     user_data = get_user_data(st.session_state.user_id)
     st.write(f"Welcome, **{user_data['name']}**! Your Tech Stack: {user_data['tech_stack']}")
+    
+    # Ask Tech Questions Sequentially
+    if st.session_state.current_question_index < len(st.session_state.tech_questions):
+        current_question = st.session_state.tech_questions[st.session_state.current_question_index]
+        st.write(f"📌 **{current_question}**")
 
     # Start Interview Section
     if "interview_started" not in st.session_state:

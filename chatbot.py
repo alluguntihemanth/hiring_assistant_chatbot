@@ -1,12 +1,14 @@
 import streamlit as st
 import google.generativeai as genai  # Gemini API
 from auth import signup_user, login_user, save_user, get_user_data, delete_user_data
-import gemini_api import GEMINI_API_KEY
+import gemini_api
 from database import save_chat_history, get_chat_history, delete_all_user_data, save_user_score
 from prompts import get_tech_questions
 import time
 
 # Initialize Gemini AI
+GEMINI_API_KEY = st.secrets["gemini"]["api_key"]
+
 genai.configure(api_key=GEMINI_API_KEY)
 
 import re

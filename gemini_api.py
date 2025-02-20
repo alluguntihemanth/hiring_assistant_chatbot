@@ -18,18 +18,20 @@ def generate_response(prompt):
     return response.text if response else "Sorry, I couldn't generate a response."
 
 def generate_questions(prompt):
-    """Calls Gemini API to generate diverse tech questions."""
-    model = genai.GenerativeModel("gemini-pro")
-    
     try:
+        model = genai.GenerativeModel("gemini-pro")
         response = model.generate_content(prompt)
-        if response and response.text:
-            # Ensure we extract only valid questions and ignore unnecessary text
-            questions = [q.strip() for q in response.text.split("\n") if q.strip()]
-            return questions[:5]  # Ensure exactly 5 questions
-        else:
-            return ["Error: No valid questions generated."]
+
+        # Ensure response is structured correctly
+        if not response or not response.text:
+            return ["Error: No response from API"]
+
+        # Split response into list of questions
+        questions = response.text.strip().split("\n")
+        return questions[:5]  # Ensure only 5 questions
+
     except Exception as e:
         return [f"Error: {str(e)}"]
+
 
 

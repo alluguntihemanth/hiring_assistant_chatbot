@@ -147,10 +147,10 @@ if st.session_state.logged_in:
                     st.session_state[f"answer_{st.session_state.current_question_index}"] = ""
                     st.rerun()
 
-            else:
-                average_score = sum(st.session_state.scores) / len(st.session_state.scores)
-                st.write(f"✅ Assessment Complete! Your final score: **{average_score:.2f}%**")
-                save_user_score(st.session_state.user_id, average_score)
+               
+                    average_score = sum(st.session_state.scores) / len(st.session_state.scores)
+                    st.write(f"✅ Assessment Complete! Your final score: **{average_score:.2f}%**")
+                    save_user_score(st.session_state.user_id, average_score)
 
                     
         else:

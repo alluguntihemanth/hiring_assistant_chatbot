@@ -33,7 +33,6 @@ def evaluate_response(candidate_answer):
     else:
         return 0.0  # Default score if extraction fails
 
-
 # Page Title
 st.title("🧑‍💻 TalentScout Hiring Assistant")
 st.write("Helping recruiters assess tech candidates quickly!")
@@ -44,8 +43,7 @@ if "logged_in" not in st.session_state:
     st.session_state.user_id = None
     st.session_state.tech_questions = []
     st.session_state.current_question_index = 0
-    st.session_state.answers = {}  # Store answers persistently
-    st.session_state.scores = [] 
+    st.session_state.scores = []  # Initialize scores list    
 
 # Login or Signup
 if not st.session_state.logged_in:
@@ -72,16 +70,16 @@ if not st.session_state.logged_in:
 
     if option == "Signup":
         if st.button("Signup") and agree_gdpr:
-            user_id = signup_user(email, password)
-            if user_id:
-                save_user(user_id, email, name, phone, experience, position, location, tech_stack)
-                st.session_state.logged_in = True
-                st.session_state.user_id = user_id
-                st.session_state.tech_questions = get_tech_questions(tech_stack)[:5]
-                st.success("Signup successful!")
-                st.rerun()
-            else:
-                st.error("Error during signup!")
+                user_id = signup_user(email, password)
+                if user_id:
+                    save_user(user_id, email, name, phone, experience, position, location, tech_stack)
+                    st.session_state.logged_in = True
+                    st.session_state.user_id = user_id
+                    st.session_state.tech_questions = get_tech_questions(tech_stack)[:5]
+                    st.success("Signup successful!")
+                    st.rerun()
+                else:
+                    st.error("Error during signup!")
         elif not agree_gdpr:
             st.warning("You must accept the Privacy Policy to continue.")
 
@@ -99,6 +97,7 @@ if not st.session_state.logged_in:
                 st.error("Invalid credentials!")
         elif not agree_gdpr:
             st.warning("You must accept the Privacy Policy to continue.")
+
 
 # Logged-in State
 if st.session_state.logged_in:

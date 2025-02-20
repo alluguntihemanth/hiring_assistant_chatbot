@@ -124,7 +124,7 @@ if st.session_state.logged_in:
 
     questions = st.session_state.user_questions[user_id]
     index = st.session_state.current_question_index[user_id]
-    answers = st.session_state.answers[user_id]
+    answers = st.session_state.answers.get(user_id, {})
 
     if index < len(questions):
         current_question = questions[index]

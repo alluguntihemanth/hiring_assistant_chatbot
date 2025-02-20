@@ -5,21 +5,16 @@ import gemini_api
 from database import save_chat_history, get_chat_history, delete_all_user_data, save_user_score
 from prompts import get_tech_questions
 import time
+import re
 
 # Initialize Gemini AI
 GEMINI_API_KEY = st.secrets["gemini"]["api_key"]
-
 genai.configure(api_key=GEMINI_API_KEY)
-
-import re
-
-import re
 
 def evaluate_response(candidate_answer):
     """Evaluates the candidate's answer using Gemini AI and returns a numeric score."""
     model = genai.GenerativeModel("gemini-pro")
     
-    # Improved prompt for better response evaluation
     prompt = (
         "Evaluate the following technical answer on accuracy, completeness, and relevance to the topic. "
         "Provide a numeric score between 0 and 100, with 100 being perfect. Format: Score: [number]/100.\n\n"
@@ -27,14 +22,9 @@ def evaluate_response(candidate_answer):
     )
     
     response = model.generate_content(prompt)
-
-    # Extract numerical score using regex
     match = re.search(r"Score:\s*(\d+)", response.text)
     
-    if match:
-        return min(max(float(match.group(1)), 0), 100)  # Ensure score is within 0-100
-    else:
-        return 0.0  # Default score if extraction fails
+    return min(max(float(match.group(1)), 0), 100) if match else 0.0
 
 # Page Title
 st.title("🧑‍💻 TalentScout Hiring Assistant")
@@ -46,7 +36,8 @@ if "logged_in" not in st.session_state:
     st.session_state.user_id = None
     st.session_state.tech_questions = []
     st.session_state.current_question_index = 0
-    st.session_state.scores = []  # Initialize scores list    
+    st.session_state.answers = {}  # Store answers persistently
+    st.session_state.scores = [] 
 
 # Login or Signup
 if not st.session_state.logged_in:
@@ -73,16 +64,16 @@ if not st.session_state.logged_in:
 
     if option == "Signup":
         if st.button("Signup") and agree_gdpr:
-                user_id = signup_user(email, password)
-                if user_id:
-                    save_user(user_id, email, name, phone, experience, position, location, tech_stack)
-                    st.session_state.logged_in = True
-                    st.session_state.user_id = user_id
-                    st.session_state.tech_questions = get_tech_questions(tech_stack)[:5]
-                    st.success("Signup successful!")
-                    st.rerun()
-                else:
-                    st.error("Error during signup!")
+            user_id = signup_user(email, password)
+            if user_id:
+                save_user(user_id, email, name, phone, experience, position, location, tech_stack)
+                st.session_state.logged_in = True
+                st.session_state.user_id = user_id
+                st.session_state.tech_questions = get_tech_questions(tech_stack)[:5]
+                st.success("Signup successful!")
+                st.rerun()
+            else:
+                st.error("Error during signup!")
         elif not agree_gdpr:
             st.warning("You must accept the Privacy Policy to continue.")
 
@@ -101,33 +92,64 @@ if not st.session_state.logged_in:
         elif not agree_gdpr:
             st.warning("You must accept the Privacy Policy to continue.")
 
-
 # Logged-in State
 if st.session_state.logged_in:
     user_data = get_user_data(st.session_state.user_id)
     st.write(f"Welcome, **{user_data['name']}**! Your Tech Stack: {user_data['tech_stack']}")
 
-    # Ask Tech Questions Sequentially
-    if st.session_state.current_question_index < len(st.session_state.tech_questions):
-        current_question = st.session_state.tech_questions[st.session_state.current_question_index]
-        st.write(f"📌 **{current_question}**")
+    # Start Interview Section
+    if "interview_started" not in st.session_state:
+        st.session_state.interview_started = False
 
-        candidate_answer = st.text_area("Your Answer:", key=f"answer_{st.session_state.current_question_index}")
-
-        if st.button("Submit"):
-            score = evaluate_response(candidate_answer)  # Evaluate response with Gemini
-            st.session_state.scores.append(score)
-
-            save_chat_history(st.session_state.user_id, current_question, candidate_answer)
-            st.session_state.current_question_index += 1
-            st.session_state[f"answer_{st.session_state.current_question_index}"] = ""
+    if not st.session_state.interview_started:
+        if st.button("Start Interview"):
+            st.session_state.interview_started = True
             st.rerun()
     else:
-        average_score = sum(st.session_state.scores) / len(st.session_state.scores)
-        st.write(f"✅ Assessment Complete! Your final score: **{average_score:.2f}%**")
-        save_user_score(st.session_state.user_id, average_score)
+        # Ask Tech Questions Sequentially
+        total_questions = len(st.session_state.tech_questions)
+        index = st.session_state.current_question_index
 
-    # User Data Deletion (Button deactivated after first click)
+        if index < total_questions:
+            current_question = st.session_state.tech_questions[index]
+            st.write(f"📌 **{current_question}**")
+
+            # Retrieve previous answer if it exists
+            candidate_answer = st.text_area(
+                "Your Answer:", 
+                value=st.session_state.answers.get(index, ""), 
+                key=f"answer_{index}"
+            )
+
+            # Store the answer persistently
+            st.session_state.answers[index] = candidate_answer
+
+            # Navigation Buttons
+            col1, col2, col3 = st.columns([1, 1, 1])
+
+            with col1:
+                if index > 0 and st.button("Previous"):
+                    st.session_state.current_question_index -= 1
+                    st.rerun()
+
+            with col2:
+                if index < total_questions - 1 and st.button("Next"):
+                    st.session_state.current_question_index += 1
+                    st.rerun()
+
+            with col3:
+                if index == total_questions - 1 and st.button("Submit"):
+                    score = evaluate_response(candidate_answer)
+                    st.session_state.scores.append(score)
+                    save_chat_history(st.session_state.user_id, current_question, candidate_answer)
+
+                    average_score = sum(st.session_state.scores) / len(st.session_state.scores)
+                    st.write(f"✅ Assessment Complete! Your final score: **{average_score:.2f}%**")
+                    save_user_score(st.session_state.user_id, average_score)
+        else:
+            st.write("No questions available.")
+
+    # User Data Deletion
     if "delete_clicked" not in st.session_state:
         st.session_state.delete_clicked = False
 

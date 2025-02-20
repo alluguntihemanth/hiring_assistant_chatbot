@@ -9,7 +9,7 @@ load_dotenv()
 # Configure API Key
 GEMINI_API_KEY = st.secrets["gemini"]["api_key"]
 
-genai.configure(api_key=GENAI_API_KEY)
+genai.configure(api_key=GEMINI_API_KEY)
 
 def generate_response(prompt):
     """Calls Gemini API to generate a response."""

@@ -13,7 +13,7 @@ genai.configure(api_key=GEMINI_API_KEY)
 
 def generate_response(prompt):
     """Calls Gemini API to generate a response."""
-    model = genai.GenerativeModel("gemini-1.5-pro")
+    model = genai.GenerativeModel("gemini-1.5-flash-latest")
     response = model.generate_content(prompt)
     return response.text if response else "Sorry, I couldn't generate a response."
 

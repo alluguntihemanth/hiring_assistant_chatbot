@@ -19,7 +19,7 @@ def generate_response(prompt):
 
 def generate_questions(prompt):
     try:
-        model = genai.GenerativeModel("gemini-pro")
+        model = genai.GenerativeModel("gemini-1.5-flash-latest")
         response = model.generate_content(prompt)
 
         # Ensure response is structured correctly

@@ -15,7 +15,7 @@ import re
 
 def evaluate_response(candidate_answer):
     """Evaluates the candidate's answer using Gemini AI and returns a numeric score."""
-    model = genai.GenerativeModel("gemini-pro")
+    model = genai.GenerativeModel(model_name="gemini-pro-1")
     
     # Improved prompt for better response evaluation
     prompt = (
